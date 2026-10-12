@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Happovaltteri – Suomen kovin JavaScript-koodari. Matrix-henkinen React-sivu.",
-  "engines": { "node": ">=22" },
+  "description": "Happovaltteri – Suomen kovin JavaScript-koodari. Matrix-henkinen React-sivu pillerilaskurilla.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,6 +14,7 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
+    "pg": "^8.13.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "vite": "^7.1.0"

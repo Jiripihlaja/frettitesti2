@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import MatrixRain from './MatrixRain.jsx';
 import { prefersReducedMotion, useCountUp, useInView } from './hooks.js';
+import { PILL_EVENT, fetchStats, recordPill } from './stats.js';
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
@@ -149,7 +150,7 @@ const PILL_MESSAGES = {
   blue: 'Sininen pilleri. Palaat arkeen: Excel-makroihin ja kokousmuistioihin.',
 };
 
-function Hero({ theme, setTheme, setBulletTime }) {
+function Hero({ theme, onPill, setBulletTime }) {
   return (
     <header className="hero">
       <p className="eyebrow">&gt; järjestelmä online _</p>
@@ -171,19 +172,19 @@ function Hero({ theme, setTheme, setBulletTime }) {
       <div className="pills" role="group" aria-label="Valitse pilleri">
         <button
           className={`pill pill-red ${theme === 'red' ? 'active' : ''}`}
-          onClick={() => setTheme('red')}
+          onClick={() => onPill('red')}
         >
           <span className="pill-dot" /> Punainen pilleri
         </button>
         <button
           className={`pill pill-green ${theme === 'green' ? 'active' : ''}`}
-          onClick={() => setTheme('green')}
+          onClick={() => onPill('green')}
         >
           <span className="pill-dot" /> Normaali
         </button>
         <button
           className={`pill pill-blue ${theme === 'blue' ? 'active' : ''}`}
-          onClick={() => setTheme('blue')}
+          onClick={() => onPill('blue')}
         >
           <span className="pill-dot" /> Sininen pilleri
         </button>
@@ -436,6 +437,98 @@ function Legends() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Pillerilaskuri (tietokannasta)                                       */
+/* ------------------------------------------------------------------ */
+
+const PILL_ROWS = [
+  { key: 'red', label: 'Punainen pilleri', color: '#ff2a3d' },
+  { key: 'green', label: 'Normaali', color: '#00ff41' },
+  { key: 'blue', label: 'Sininen pilleri', color: '#3d8bff' },
+];
+
+function PillRow({ label, color, count, total, active }) {
+  const n = useCountUp(count, active, 1200);
+  const share = total ? Math.round((count / total) * 100) : 0;
+  return (
+    <div className="skill pill-row" style={{ '--c': color }}>
+      <div className="skill-head">
+        <span>{label}</span>
+        <span className="skill-note">{share} %</span>
+      </div>
+      <div className="skill-bar">
+        <div
+          className="skill-track"
+          role="progressbar"
+          aria-label={label}
+          aria-valuenow={share}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div className="skill-fill pill-fill" style={{ width: `${share}%` }} />
+        </div>
+        <span className="skill-pct pill-count">{n.toLocaleString('fi-FI')}</span>
+      </div>
+    </div>
+  );
+}
+
+function PillStats() {
+  const [ref, inView] = useInView(0.2);
+  const [stats, setStats] = useState(null); // null = ladataan, false = ei saatavilla
+
+  useEffect(() => {
+    if (!inView) return;
+    let alive = true;
+    const load = async () => {
+      const s = await fetchStats();
+      if (alive) setStats(s);
+    };
+    load();
+    const id = setInterval(load, 10000);
+    window.addEventListener(PILL_EVENT, load);
+    return () => {
+      alive = false;
+      clearInterval(id);
+      window.removeEventListener(PILL_EVENT, load);
+    };
+  }, [inView]);
+
+  return (
+    <section className="section">
+      <SectionTitle index="06">Pillerit nielty</SectionTitle>
+      <Reveal>
+        <div className="panel" ref={ref}>
+          <p className="live-note">
+            <span className="live-dot" /> LIVE · kaikkien kävijöiden valinnat
+          </p>
+          {stats === null && <p className="muted">Yhdistetään Matrixiin...</p>}
+          {stats === false && (
+            <p className="muted">Tilastot eivät ole juuri nyt saatavilla. Matrix on hiljaa.</p>
+          )}
+          {stats && (
+            <>
+              {PILL_ROWS.map((r) => (
+                <PillRow
+                  key={r.key}
+                  label={r.label}
+                  color={r.color}
+                  count={stats.counts[r.key]}
+                  total={stats.total}
+                  active={inView}
+                />
+              ))}
+              <p className="muted total">
+                Valintoja yhteensä: <strong>{stats.total.toLocaleString('fi-FI')}</strong>
+              </p>
+            </>
+          )}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* App                                                                 */
 /* ------------------------------------------------------------------ */
 
@@ -450,6 +543,11 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  const choosePill = (pill) => {
+    setTheme(pill);
+    recordPill(pill);
+  };
+
   const speed = SPEEDS[theme] * (bulletTime ? 0.18 : 1);
 
   return (
@@ -461,12 +559,13 @@ export default function App() {
       {!awake && <WakeUp onDone={() => setAwake(true)} />}
 
       <main className={`page ${awake ? 'awake' : ''}`}>
-        <Hero theme={theme} setTheme={setTheme} setBulletTime={setBulletTime} />
+        <Hero theme={theme} onPill={choosePill} setBulletTime={setBulletTime} />
         <Terminal />
         <Stats />
         <Skills />
         <CodeWindow />
         <Legends />
+        <PillStats />
 
         <footer className="footer">
           <p>
@@ -475,6 +574,10 @@ export default function App() {
           <p className="tiny">
             © {new Date().getFullYear()} Happovaltteri · Rakennettu Reactilla · Kaikki väitteet
             täysin objektiivisia
+          </p>
+          <p className="tiny">
+            Pillerin valinnasta tallennetaan vain valittu pilleri ja ajankohta. Ei evästeitä, ei
+            IP-osoitteita.
           </p>
         </footer>
       </main>

@@ -342,6 +342,20 @@ body {
 }
 .skill-pct { min-width: 4ch; text-align: right; color: var(--accent); text-shadow: 0 0 8px var(--accent); }
 
+/* ---------- Pillerilaskuri ---------- */
+.live-note { display: flex; align-items: center; gap: 10px; margin: 0 0 20px; font-size: 0.8rem; letter-spacing: 0.14em; color: var(--accent-dim); }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff2a3d; box-shadow: 0 0 10px #ff2a3d; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.25; transform: scale(0.7); } }
+.muted { margin: 0 0 18px; opacity: 0.7; }
+.muted strong { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+.pill-row .skill-track { border-color: var(--c); }
+.pill-fill {
+  background: repeating-linear-gradient(90deg, var(--c) 0 8px, transparent 8px 11px);
+  box-shadow: 0 0 12px var(--c);
+  transition: width 1s ease;
+}
+.pill-count { min-width: 6ch; color: var(--c); text-shadow: 0 0 8px var(--c); }
+
 /* ---------- Koodi ---------- */
 .code { margin: 0; padding: 18px 8px 20px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.95rem; line-height: 1.7; }
 .code-line { white-space: pre; padding: 0 14px; animation: line-in 0.5s both; }

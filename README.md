@@ -9,6 +9,11 @@ npm install
 npm run dev
 ```
 
+## Tietokanta
+Palvelin lukee `DATABASE_URL`-ympäristömuuttujan (Postgres) ja luo taulun `pill_choices` itse käynnistyessään.
+Ilman muuttujaa sivu toimii normaalisti, mutta pilleritilastot ovat pois käytöstä.
+API: `POST /api/pill` `{ "pill": "red|green|blue" }` ja `GET /api/stats`.
+
 ## Tuotanto (NordicHost)
 ```bash
 npm run build   # tekee dist/-kansion
